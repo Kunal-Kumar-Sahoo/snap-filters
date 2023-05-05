@@ -135,7 +135,7 @@ def get_face_boundbox(points, face_part):
     return (x, y, w, h)
 
 
-# Principal Loop where openCV (magic) ocurs
+# Principal Loop where openCV ocurs
 def cvloop(run_event, read_camera=0, virtual_camera=0):
     global panelA
     global SPRITES
@@ -145,7 +145,8 @@ def cvloop(run_event, read_camera=0, virtual_camera=0):
         f for f in listdir(dir_) if isfile(join(dir_, f))
     ]  # image of flies to make the "animation"
     i = 0
-    video_capture = cv2.VideoCapture(read_camera)  # read from webcam
+    # video_capture = cv2.VideoCapture(read_camera)  # read from webcam
+    video_capture = cv2.VideoCapture(0)  # read from webcam
     (x, y, w, h) = (0, 0, 10, 10)  # whatever initial values
 
     # Filters path
@@ -154,9 +155,7 @@ def cvloop(run_event, read_camera=0, virtual_camera=0):
     # Facial landmarks
     print("[INFO] loading facial landmark predictor...")
     model = "filters/shape_predictor_68_face_landmarks.dat"
-    predictor = dlib.shape_predictor(
-        model
-    )  # link to model: http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
+    predictor = dlib.shape_predictor(model)  # link to model: http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2
 
     stream_camera = None
     while run_event.is_set():  # while the thread is active we loop
@@ -166,13 +165,13 @@ def cvloop(run_event, read_camera=0, virtual_camera=0):
             print("Error reading camera, exiting")
             break
 
-        if _streaming:
-            if stream_camera is None:
-                if virtual_camera:
-                    h, w = image.shape[:2]
-                    stream_camera = pyfakewebcam.FakeWebcam(
-                        "/dev/video{}".format(virtual_camera), w, h
-                    )
+        # if _streaming:
+        #     if stream_camera is None:
+        #         if virtual_camera:
+        #             h, w = image.shape[:2]
+        #             stream_camera = pyfakewebcam.FakeWebcam(
+        #                 "/dev/video{}".format(virtual_camera), w, h
+        #             )
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         faces = detector(gray, 0)
 
@@ -314,7 +313,7 @@ BTNS = [btn1, btn2, btn3, btn4, btn5]
 # Creates a thread where the magic ocurs
 run_event = threading.Event()
 run_event.set()
-action = Thread(target=cvloop, args=(run_event, args.read_camera, args.virtual_camera))
+action = Thread(target=cvloop, args=(run_event, 4, args.virtual_camera))
 action.setDaemon(True)
 action.start()
 
